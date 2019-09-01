@@ -5,30 +5,18 @@
          :in-conn {}})
 
 (comment
-
-  (require '[clojure.core.async :as a])
-
-  ;;;; pipe tests
   
-  (def cx (a/chan))
+  ;;;; Test connection
+  
+  (require '[bazaar.connections.local.core-async :refer [->CoreAsync]]
+           '[bazaar.protocols :as p])
+  
+  (def conn (->CoreAsync {:hello "world"}))
 
-  (def cy (a/chan))
-
-  (def cz (a/chan))
-
-  (a/pipe cx cy)
-
-  (a/pipe cx cz)
-
-  (a/>!! cx "hello world 1")
-  (a/>!! cx "hello world 2")
-  (a/>!! cx "hello world 3")
-
-  (a/<!! cy)
-
-  (a/<!! cz) ;; this will block because pipe only sends from cx to cy, and not also to cz
 
   ;;;; pub/sub tests
+  
+  (require '[clojure.core.async :as a])
   
   (def cx (a/chan))
 
