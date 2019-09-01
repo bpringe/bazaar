@@ -3,24 +3,24 @@
             [clojure.core.async :as a]))
 
 (defn create-from-channel
-  [config]
-  (assoc config :from-channel (a/chan)))
+  [state config]
+  (assoc state :from-channel (a/chan)))
 
 (defn create-to-channel
-  [config]
-  (assoc config :to-channel (a/chan)))
+  [state config]
+  (assoc state :to-channel (a/chan)))
 
 ;; TODO: Change this to comp?
 (defn start!
   [config]
-  (-> config
-      create-from-channel
-      create-to-channel))
+  (-> {}
+      (create-from-channel config)
+      (create-to-channel config)))
 
 (defrecord CoreAsync [config]
   Connection
-  (get-to-channel [this] (:to-channel this))
-  (get-from-channel [this] (:from-channel this))
+  (get-from-channel [this] (get-in this [:state :from-channel]))
+  (get-to-channel [this] (get-in this [:state :to-channel]))
   Lifecycle
   (start! [this] 
           (assoc this :state (start! config)))
