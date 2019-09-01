@@ -1,5 +1,9 @@
 (ns bazaar.core)
 
+(def p1 {:name :p1
+         :handler (fn [msg] (assoc (:data msg) :p1 true))
+         :in-conn {}})
+
 (comment
 
   (require '[clojure.core.async :as a])
