@@ -19,14 +19,12 @@
   state)
 
 (defn stop-from-channel!
-  [{:keys [from-channel] :as state}]
-  (a/close! from-channel)
-  (dissoc state :from-channel))
+  [{:keys [from-channel]}]
+  (a/close! from-channel))
 
 (defn stop-to-channel!
-  [{:keys [to-channel] :as state}]
-  (a/close! to-channel)
-  (dissoc state :to-channel))
+  [{:keys [to-channel]}]
+  (a/close! to-channel))
 
 (defn stop-connection!
   [state]

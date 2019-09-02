@@ -1,8 +1,11 @@
-(ns bazaar.core)
+(ns bazaar.core
+  (:require [bazaar.connections.local.core-async :refer [->CoreAsync]]))
 
 (def p1 {:name :p1
-         :handler (fn [msg] (assoc (:data msg) :p1 true))
-         :in-conn {}})
+         :factory-fn nil?
+         :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
+         :in-conn {:factory-fn ->CoreAsync}
+         :out-conn {:factory-fn ->CoreAsync}})
 
 (comment
   
