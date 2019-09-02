@@ -52,4 +52,5 @@
   Lifecycle
   (start! [this] 
           (assoc this :state (start-connection! config)))
-  (stop! [this] nil))
+  (stop! [this]
+         (stop-connection! (:state this))))

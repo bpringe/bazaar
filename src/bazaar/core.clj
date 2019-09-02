@@ -21,6 +21,8 @@
   (a/put! from-channel "hello world")
 
   (a/<!! to-channel)
+  
+  (p/stop! conn)
 
 
   ;;;; pub/sub tests
