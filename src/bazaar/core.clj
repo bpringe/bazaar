@@ -1,11 +1,22 @@
 (ns bazaar.core
-  (:require [bazaar.connections.local.core-async :refer [->CoreAsync]]))
+  (:require [bazaar.connections.local.core-async :as lc]
+            [bazaar.protocols :as p]
+            [bazaar.processes.core-async :as proc]))
+
+(defn start-connections!
+  [config state]
+  (reduce-kv (fn [state k v]
+               (if (or (= k :in-conn) (= k :out-conn))
+                 (assoc state k (p/start! ((:factory-fn v) v)))
+                 (assoc state k v)))
+             {}
+             config))
 
 (def p1 {:name :p1
-         :factory-fn nil?
+         :factory-fn proc/->CoreAsync
          :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
-         :in-conn {:factory-fn ->CoreAsync}
-         :out-conn {:factory-fn ->CoreAsync}})
+         :in-conn {:factory-fn lc/->CoreAsync}
+         :out-conn {:factory-fn lc/->CoreAsync}})
 
 (comment
   
