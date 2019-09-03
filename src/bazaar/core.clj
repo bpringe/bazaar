@@ -5,6 +5,7 @@
 
 (defn start-connections!
   [config state]
+  (println "Starting connections")
   (reduce-kv (fn [state k v]
                (if (or (= k :in-conn) (= k :out-conn))
                  (assoc state k (p/start! ((:factory-fn v) v)))
@@ -12,14 +13,24 @@
              {}
              config))
 
+process
+
+(defn start-process!
+  [{:keys [factory-fn] :as config}]
+  (->> {}
+       (start-connections! config)
+       factory-fn
+       p/start!))
+
 (def p1 {:name :p1
          :factory-fn proc/->CoreAsync
          :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
          :in-conn {:factory-fn lc/->CoreAsync}
          :out-conn {:factory-fn lc/->CoreAsync}})
 
-(comment
-  
+
+
+(comment 
   ;;;; Test connection
   
   (require '[bazaar.connections.local.core-async :refer [->CoreAsync]]

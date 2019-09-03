@@ -10,7 +10,7 @@
   [config state]
   (assoc state :to-channel (a/chan)))
 
-(defn start-processing!
+(defn start-process-loop!
   [_ {:keys [from-channel to-channel] :as state}]
   (a/go-loop []
     (when-let [msg (a/<! from-channel)]
@@ -32,14 +32,13 @@
       stop-from-channel!
       stop-to-channel!))
 
-;; TODO: Change this to comp?
 (defn start-connection!
   "Starts the connection and returns the started connection."
   [config]
   (->> {}
        (create-from-channel config)
        (create-to-channel config)
-       (start-processing! config)))
+       (start-process-loop! config)))
 
 (defrecord CoreAsync [config]
   Connection
