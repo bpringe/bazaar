@@ -16,4 +16,6 @@
   p/Lifecycle
   (start! [this]
           (assoc this :state (start-process-loop! config)))
-  (stop! [this] this))
+  (stop! [this] 
+         (println "Stopping process")
+         this))

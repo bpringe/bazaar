@@ -20,9 +20,21 @@
        factory-fn
        p/start!))
 
+(defn stop-connections!
+  [process]
+  (update process :state
+          #(reduce-kv
+            (fn [state k v]
+              (if (or (= k :in-conn) (= k :out-conn))
+                (assoc state k (p/stop! v))
+                (assoc state k v)))
+            {}
+            %)))
+
 (defn stop-process!
   [process]
-  (p/stop! process))
+  (->> process
+       stop-connections!))
 
 (def p1 {:name :p1
          :factory-fn proc/->CoreAsync
@@ -45,6 +57,8 @@
   (a/put! input-chan "hello world")
   
   (a/<!! output-chan)
+  
+  (stop-process! process)
 
   ;;;; Test connection
   

@@ -20,11 +20,13 @@
 
 (defn stop-from-channel!
   [{:keys [from-channel] :as state}]
+  (println "Closing from-channel")
   (a/close! from-channel)
   state)
 
 (defn stop-to-channel!
   [{:keys [to-channel] :as state}]
+  (println "Closing to-channel")
   (a/close! to-channel)
   state)
 
