@@ -20,6 +20,10 @@
        factory-fn
        p/start!))
 
+(defn stop-process!
+  [process]
+  (p/stop! process))
+
 (def p1 {:name :p1
          :factory-fn proc/->CoreAsync
          :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
@@ -27,9 +31,10 @@
          :out-conn {:factory-fn lc/->CoreAsync}})
 
 
-
 (comment
   ;;;; Test process with connections, data flow
+  
+  (require '[clojure.core.async :as a])
   
   (def process (start-process! p1))
 
