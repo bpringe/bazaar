@@ -7,3 +7,6 @@
 (defprotocol Connection
   (get-to-channel [this])
   (get-from-channel [this]))
+
+(defprotocol Proc
+  (get-name [this]))

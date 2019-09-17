@@ -2,49 +2,27 @@
   (:require [bazaar.protocols :refer [Connection Lifecycle]]
             [clojure.core.async :as a]))
 
-(defn create-from-channel
-  [config state]
-  (assoc state :from-channel (a/chan)))
-
-(defn create-to-channel
-  [config state]
-  (assoc state :to-channel (a/chan)))
-
 (defn start-process-loop!
-  [_ {:keys [from-channel to-channel] :as state}]
+  [{:keys [from-channel to-channel] :as state}]
   (a/go-loop []
     (when-let [msg (a/<! from-channel)]
       (a/>! to-channel msg)
       (recur)))
   state)
 
-(defn stop-from-channel!
+(defn close-from-channel!
   [{:keys [from-channel] :as state}]
   (println "Closing from-channel")
   (a/close! from-channel)
   state)
 
-(defn stop-to-channel!
+(defn close-to-channel!
   [{:keys [to-channel] :as state}]
   (println "Closing to-channel")
   (a/close! to-channel)
   state)
 
-(defn stop-connection!
-  [state]
-  (-> state
-      stop-from-channel!
-      stop-to-channel!))
-
-(defn start-connection!
-  "Starts the connection and returns the started connection."
-  [config]
-  (->> {}
-       (create-from-channel config)
-       (create-to-channel config)
-       (start-process-loop! config)))
-
-(defrecord CoreAsync [config]
+(defrecord CoreAsync []
   Connection
   (get-from-channel [this] 
                     (get-in this [:state :from-channel]))
@@ -52,6 +30,11 @@
                   (get-in this [:state :to-channel]))
   Lifecycle
   (start! [this] 
-          (assoc this :state (start-connection! config)))
+          (assoc this :state (-> {}
+                                 (assoc :from-channel (a/chan))
+                                 (assoc :to-channel (a/chan))
+                                 start-process-loop!)))
   (stop! [this]
-         (stop-connection! (:state this))))
+         (-> (:state this)
+             close-from-channel!
+             close-to-channel!)))

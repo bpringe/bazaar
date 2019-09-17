@@ -1,47 +1,12 @@
 (ns bazaar.core
   (:require [bazaar.connections.local.core-async :as lc]
-            [bazaar.protocols :as p]
             [bazaar.processes.core-async :as proc]))
 
-(defn start-connections!
-  [config state]
-  (println "Starting connections")
-  (reduce-kv (fn [state k v]
-               (if (or (= k :in-conn) (= k :out-conn))
-                 (assoc state k (p/start! ((:factory-fn v) v)))
-                 (assoc state k v)))
-             {}
-             config))
-
-(defn start-process!
-  [{:keys [factory-fn] :as config}]
-  (->> {}
-       (start-connections! config)
-       factory-fn
-       p/start!))
-
-(defn stop-connections!
-  [process]
-  (update process :state
-          #(reduce-kv
-            (fn [state k v]
-              (if (or (= k :in-conn) (= k :out-conn))
-                (assoc state k (p/stop! v))
-                (assoc state k v)))
-            {}
-            %)))
-
-(defn stop-process!
-  [process]
-  (->> process
-       stop-connections!))
-
-(def p1 {:name :p1
-         :factory-fn proc/->CoreAsync
-         :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
-         :in-conn {:factory-fn lc/->CoreAsync}
-         :out-conn {:factory-fn lc/->CoreAsync}})
-
+(def p1 (proc/->CoreAsync 
+         {:name :p1
+          :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
+          :in-conn (lc/->CoreAsync)
+          :out-conn (lc/->CoreAsync)}))
 
 (comment
   ;;;; Test process with connections, data flow
