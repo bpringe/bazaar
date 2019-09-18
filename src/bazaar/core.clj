@@ -4,7 +4,7 @@
 
 (def p1 (proc/->CoreAsync
          {:name :p1
-          :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
+          :handler-fn (fn [msg] (assoc msg :p1 true))
           :in-conn (lc/->CoreAsync)
           :out-conn (lc/->CoreAsync)}))
 
@@ -16,11 +16,11 @@
   
   (def process (p/start! p1))
   
-  (def input-channel (-> process :state :in-conn :state :input-channel))
+  (def input-channel (p/get-input-channel (-> process :state :in-conn)))
   
-  (def output-channel (-> process :state :out-conn :state :output-channel))
+  (def output-channel (p/get-output-channel (-> process :state :out-conn)))
 
-  (a/>!! input-channel "hello")
+  (a/>!! input-channel {:a 1})
   
   (a/<!! output-channel)
 

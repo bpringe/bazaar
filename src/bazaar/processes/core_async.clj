@@ -21,15 +21,16 @@
              state))
 
 (defn start-process-loop!
-  [{:keys [name]} {:keys [in-conn out-conn] :as state}]
+  [{:keys [name handler-fn]} {:keys [in-conn out-conn] :as state}]
   (let [input-chan (p/get-output-channel in-conn)
         output-chan (p/get-input-channel out-conn)]
     (println "Starting process loop for process" name)
     (a/go-loop []
       (when-let [msg (a/<! input-chan)]
-        (println "[" name "] - message received:" msg)
-        (a/>! output-chan msg)
-        (println "Message sent to output channel")
+        (println (format "[%s] - Message received: %s" name msg))
+        (let [handler-result (handler-fn msg)]
+          (println (format "[%s] - Handler result: %s" name handler-result))
+          (a/>! output-chan handler-result))
         (recur))))
   state)
 
