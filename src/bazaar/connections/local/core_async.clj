@@ -3,38 +3,55 @@
             [clojure.core.async :as a]))
 
 (defn start-process-loop!
-  [{:keys [from-channel to-channel] :as state}]
+  [{:keys [input-channel output-channel] :as state}]
   (a/go-loop []
-    (when-let [msg (a/<! from-channel)]
-      (a/>! to-channel msg)
+    (when-let [msg (a/<! input-channel)]
+      (println "Message received in core-async connection:" msg)
+      (println "Sending to output channel")
+      (a/>! output-channel msg)
       (recur)))
   state)
 
-(defn close-from-channel!
-  [{:keys [from-channel] :as state}]
-  (println "Closing from-channel")
-  (a/close! from-channel)
+(defn close-input-channel!
+  [{:keys [input-channel] :as state}]
+  (println "Closing input-channel")
+  (a/close! input-channel)
   state)
 
-(defn close-to-channel!
-  [{:keys [to-channel] :as state}]
-  (println "Closing to-channel")
-  (a/close! to-channel)
+(defn close-output-channel!
+  [{:keys [output-channel] :as state}]
+  (println "Closing output-channel")
+  (a/close! output-channel)
   state)
 
 (defrecord CoreAsync []
   Connection
-  (get-from-channel [this] 
-                    (get-in this [:state :from-channel]))
-  (get-to-channel [this]
-                  (get-in this [:state :to-channel]))
+  (get-input-channel [this]
+    (get-in this [:state :input-channel]))
+  (get-output-channel [this]
+    (get-in this [:state :output-channel]))
   Lifecycle
-  (start! [this] 
-          (assoc this :state (-> {}
-                                 (assoc :from-channel (a/chan))
-                                 (assoc :to-channel (a/chan))
-                                 start-process-loop!)))
+  (start! [this]
+    (assoc this :state (-> {}
+                           (assoc :input-channel (a/chan))
+                           (assoc :output-channel (a/chan))
+                           start-process-loop!)))
   (stop! [this]
-         (-> (:state this)
-             close-from-channel!
-             close-to-channel!)))
+    (-> (:state this)
+        close-input-channel!
+        close-output-channel!)))
+
+(comment
+  (require '[bazaar.protocols :as p])
+  
+  (def conn (p/start! (->CoreAsync)))
+  
+  (def input-channel (p/get-input-channel conn))
+  
+  (def output-channel (p/get-output-channel conn))
+  
+  (a/>!! input-channel "hello")
+  
+  (a/<!! output-channel)
+  
+  1)

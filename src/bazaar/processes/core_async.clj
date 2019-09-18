@@ -2,24 +2,45 @@
   (:require [bazaar.protocols :as p]
             [clojure.core.async :as a]))
 
+(defn start-connections!
+  [config state]
+  (reduce-kv (fn [state k v]
+               (if (satisfies? p/Connection v)
+                 (assoc state k (p/start! v))))
+             state
+             config))
 
+(defn stop-connections!
+  [state]
+  (reduce-kv (fn [state k v]
+               (if (satisfies? p/Connection v)
+                 (do (p/stop! v)
+                     (dissoc state k))
+                 state))
+             state
+             state))
 
 (defn start-process-loop!
-  [{:keys [in-conn out-conn]}]
-  (let [input-chan (p/get-to-channel in-conn)
-        output-chan (p/get-from-channel out-conn)]
+  [{:keys [name]} {:keys [in-conn out-conn] :as state}]
+  (let [input-chan (p/get-output-channel in-conn)
+        output-chan (p/get-input-channel out-conn)]
+    (println "Starting process loop for process" name)
     (a/go-loop []
       (when-let [msg (a/<! input-chan)]
+        (println "[" name "] - message received:" msg)
         (a/>! output-chan msg)
-        (recur)))))
+        (println "Message sent to output channel")
+        (recur))))
+  state)
 
 (defrecord CoreAsync [config]
   p/Lifecycle
   (start! [this]
-          ;; TODO: Start connections here and assoc to state of process
-          (assoc this :state {:running? true}))
-  (stop! [this] 
-    (println "Stopping process")
-    this)
+          (assoc this :state (->> {}
+                                  (start-connections! config)
+                                  (start-process-loop! config))))
+  (stop! [this]
+         (assoc this :state (->> (:state this)
+                                 stop-connections!)))
   p/Proc
   (get-name [this] (:name config)))

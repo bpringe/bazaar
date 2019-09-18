@@ -5,8 +5,8 @@
   (stop! [this]))
 
 (defprotocol Connection
-  (get-to-channel [this])
-  (get-from-channel [this]))
+  (get-input-channel [this])
+  (get-output-channel [this]))
 
 (defprotocol Proc
   (get-name [this]))

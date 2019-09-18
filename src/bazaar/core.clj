@@ -2,7 +2,7 @@
   (:require [bazaar.connections.local.core-async :as lc]
             [bazaar.processes.core-async :as proc]))
 
-(def p1 (proc/->CoreAsync 
+(def p1 (proc/->CoreAsync
          {:name :p1
           :handler-fn (fn [msg] (assoc (:data msg) :p1 true))
           :in-conn (lc/->CoreAsync)
@@ -11,38 +11,20 @@
 (comment
   ;;;; Test process with connections, data flow
   
-  (require '[clojure.core.async :as a])
+  (require '[clojure.core.async :as a]
+           '[bazaar.protocols :as p])
   
-  (def process (start-process! p1))
-
-  (def input-chan (p/get-from-channel (-> process :state :in-conn)))
-
-  (def output-chan (p/get-to-channel (-> process :state :out-conn)))
+  (def process (p/start! p1))
   
-  (a/put! input-chan "hello world")
+  (def input-channel (-> process :state :in-conn :state :input-channel))
   
-  (a/<!! output-chan)
+  (def output-channel (-> process :state :out-conn :state :output-channel))
+
+  (a/>!! input-channel "hello")
   
-  (stop-process! process)
+  (a/<!! output-channel)
 
-  ;;;; Test connection
-  
-  (require '[bazaar.connections.local.core-async :refer [->CoreAsync]]
-           '[bazaar.protocols :as p]
-           '[clojure.core.async :as a])
-
-  (def conn (p/start! (->CoreAsync {:hello "world"})))
-
-  (def from-channel (-> conn :state :from-channel))
-
-  (def to-channel (-> conn :state :to-channel))
-
-  (a/put! from-channel "hello world")
-
-  (a/<!! to-channel)
-
-  (p/stop! conn)
-
+  (p/stop! process)
 
   ;;;; pub/sub tests
   
