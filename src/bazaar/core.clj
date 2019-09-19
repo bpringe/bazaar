@@ -5,8 +5,10 @@
 (def p1 (proc/->CoreAsync
          {:name :p1
           :handler-fn (fn [msg] (assoc msg :p1 true))
-          :in-conn (lc/->CoreAsync)
-          :out-conn (lc/->CoreAsync)}))
+          :in-conn (lc/->CoreAsync
+                    {:sub-topic "in.p1"})
+          :out-conn (lc/->CoreAsync
+                     {:pub-topic "out.p1"})}))
 
 (comment
   ;;;; Test process with connections, data flow

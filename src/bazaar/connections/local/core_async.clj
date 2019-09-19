@@ -2,6 +2,19 @@
   (:require [bazaar.protocols :refer [Connection Lifecycle]]
             [clojure.core.async :as a]))
 
+(defn create-input-channel!
+  [state]
+  (assoc state :input-channel (a/chan)))
+
+(defn create-output-channel!
+  [state]
+  (assoc state :output-channel (a/chan)))
+
+; (defn create-subscription!
+;   [{:keys [sub-topic]} state]
+;   (if sub-topic
+;     (a/sub )))
+
 (defn start-process-loop!
   [{:keys [input-channel output-channel] :as state}]
   (a/go-loop []
@@ -24,7 +37,7 @@
   (a/close! output-channel)
   state)
 
-(defrecord CoreAsync []
+(defrecord CoreAsync [config]
   Connection
   (get-input-channel [this]
     (get-in this [:state :input-channel]))
@@ -32,10 +45,10 @@
     (get-in this [:state :output-channel]))
   Lifecycle
   (start! [this]
-    (assoc this :state (-> {}
-                           (assoc :input-channel (a/chan))
-                           (assoc :output-channel (a/chan))
-                           start-process-loop!)))
+    (assoc this :state (->> {}
+                            create-input-channel!
+                            create-output-channel!
+                            start-process-loop!)))
   (stop! [this]
     (-> (:state this)
         close-input-channel!
