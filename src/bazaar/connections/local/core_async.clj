@@ -3,17 +3,12 @@
             [clojure.core.async :as a]))
 
 (defn create-input-channel!
-  [state]
+  [config state]
   (assoc state :input-channel (a/chan)))
 
 (defn create-output-channel!
-  [state]
+  [config state]
   (assoc state :output-channel (a/chan)))
-
-; (defn create-subscription!
-;   [{:keys [sub-topic]} state]
-;   (if sub-topic
-;     (a/sub )))
 
 (defn start-process-loop!
   [{:keys [input-channel output-channel] :as state}]
@@ -46,8 +41,8 @@
   Lifecycle
   (start! [this]
     (assoc this :state (->> {}
-                            create-input-channel!
-                            create-output-channel!
+                            (create-input-channel! config)
+                            (create-output-channel! config)
                             start-process-loop!)))
   (stop! [this]
     (-> (:state this)
