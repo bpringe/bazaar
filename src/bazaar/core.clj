@@ -6,7 +6,7 @@
          {:name :p1
           :handler-fn (fn [msg] (assoc msg :p1 true))
           :in-conn (lc/->CoreAsync
-                    {:sub-topic "in.p1"})
+                    {:sub-topics ["in.p1"]})
           :out-conn (lc/->CoreAsync
                      {:pub-topic "out.p1"})}))
 
