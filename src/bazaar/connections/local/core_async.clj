@@ -26,6 +26,7 @@
       (a/sub publication topic (:input-channel state))))
   state)
 
+;; TODO: Fix this. It should check the pub-hub before calling create-publication!
 (defn create-output-channel!
   [{:keys [pub-topic]} state]
   (if pub-topic
