@@ -18,7 +18,7 @@
     (swap! topic-hub assoc topic topic-data)
     topic-data))
 
-(defn create-subscription!
+(defn create-subscriptions!
   [{:keys [sub-topics]} state]
   (doseq [topic sub-topics]
     (let [{:keys [publication]} (or (get @topic-hub topic)
@@ -65,7 +65,7 @@
   (start! [this]
     (assoc this :state (->> {}
                             (create-input-channel! config)
-                            (create-subscription! config)
+                            (create-subscriptions! config)
                             (create-output-channel! config)
                             start-process-loop!)))
   (stop! [this]
