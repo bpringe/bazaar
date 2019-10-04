@@ -9,24 +9,24 @@
   (assoc state :input-channel (a/chan)))
 
 (defn create-publication!
-  "Creates a publication, adds it to the topic-hub, and returns the publication and channel as a map"
+  "If topic exists in pub-hub, returns topic data, else it creates the topic data, adds it to the topic-hub, and returns it."
   [topic]
-  (let [channel (a/chan)
-        publication (a/pub channel (fn [_] topic))
-        topic-data {:channel channel
-                    :publication publication}]
-    (swap! topic-hub assoc topic topic-data)
-    topic-data))
+  (if-let [topic-data (get @topic-hub topic)]
+    topic-data
+    (let [channel (a/chan)
+          publication (a/pub channel (fn [_] topic))
+          topic-data {:channel channel
+                      :publication publication}]
+      (swap! topic-hub assoc topic topic-data)
+      topic-data)))
 
-(defn create-subscriptions!
+(defn subscribe-to-topics!
   [{:keys [sub-topics]} state]
   (doseq [topic sub-topics]
-    (let [{:keys [publication]} (or (get @topic-hub topic)
-                                    (create-publication! topic))]
+    (let [{:keys [publication]} (create-publication! topic)]
       (a/sub publication topic (:input-channel state))))
   state)
 
-;; TODO: Fix this. It should check the pub-hub before calling create-publication!
 (defn create-output-channel!
   [{:keys [pub-topic]} state]
   (if pub-topic
@@ -66,8 +66,9 @@
   (start! [this]
     (assoc this :state (->> {}
                             (create-input-channel! config)
-                            (create-subscriptions! config)
+                            (subscribe-to-topics! config)
                             (create-output-channel! config)
+                            (create-publication)
                             start-process-loop!)))
   (stop! [this]
     (-> (:state this)
@@ -81,7 +82,7 @@
   
   (def sub-topic-channel (:channel (get @topic-hub "out.p1")))
   
-  (a/>!! sub-topic-channel "hello world")
+  (a/>!! sub-topic-channel "hello world 2")
   
   (def input-channel (p/get-input-channel conn))
   
