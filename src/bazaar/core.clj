@@ -10,23 +10,34 @@
           :out-conn (lc/->CoreAsync
                      {:pub-topic "out.p1"})}))
 
+(def p2 (proc/->CoreAsync
+         {:name :p2
+          :handler-fn (fn [msg] (assoc msg :p2 true))
+          :in-conn (lc/->CoreAsync
+                    {:sub-topics ["out.p1"]})
+          :out-conn (lc/->CoreAsync
+                     {:pub-topic "out.p2"})}))
+
 (comment
   ;;;; Test process with connections, data flow
   
   (require '[clojure.core.async :as a]
            '[bazaar.protocols :as p])
   
-  (def process (p/start! p1))
+  (def process-1 (p/start! p1))
   
-  (def input-channel (p/get-input-channel (-> process :state :in-conn)))
+  (def process-2 (p/start! p2))
   
-  (def output-channel (p/get-output-channel (-> process :state :out-conn)))
+  (def input-channel (p/get-input-channel (-> process-1 :state :in-conn)))
+  
+  (def output-channel (p/get-output-channel (-> process-2 :state :out-conn)))
 
   (a/>!! input-channel {:a 1})
   
   (a/<!! output-channel)
 
-  (p/stop! process)
+  (p/stop! process-1)
+  (p/stop! process-2)
 
   ;;;; pub/sub tests
   

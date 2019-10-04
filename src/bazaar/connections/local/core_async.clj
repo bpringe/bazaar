@@ -38,8 +38,6 @@
   [{:keys [input-channel output-channel] :as state}]
   (a/go-loop []
     (when-let [msg (a/<! input-channel)]
-      (println "Message received in core-async connection:" msg)
-      (println "Sending to output channel")
       (a/>! output-channel msg)
       (recur)))
   state)
@@ -68,7 +66,6 @@
                             (create-input-channel! config)
                             (subscribe-to-topics! config)
                             (create-output-channel! config)
-                            (create-publication)
                             start-process-loop!)))
   (stop! [this]
     (-> (:state this)
