@@ -18,6 +18,14 @@
           :out-conn (lc/->CoreAsync
                      {:pub-topic "out.p2"})}))
 
+(def p3 (proc/->CoreAsync
+         {:name :p3
+          :handler-fn (fn [msg] (assoc msg :p3 true))
+          :in-conn (lc/->CoreAsync
+                    {:sub-topics ["out.p1"]})
+          :out-conn (lc/->CoreAsync
+                     {:pub-topic "out.p3"})}))
+
 (comment
   ;;;; Test process with connections, data flow
   
@@ -25,19 +33,18 @@
            '[bazaar.protocols :as p])
   
   (def process-1 (p/start! p1))
-  
   (def process-2 (p/start! p2))
+  (def process-3 (p/start! p3))
   
   (def input-channel (p/get-input-channel (-> process-1 :state :in-conn)))
-  
-  (def output-channel (p/get-output-channel (-> process-2 :state :out-conn)))
+  (def p2-output-channel (p/get-output-channel (-> process-2 :state :out-conn)))
+  (def p3-output-channel (p/get-output-channel (-> process-3 :state :out-conn)))
 
   (a/>!! input-channel {:a 1})
-  
-  (a/<!! output-channel)
 
   (p/stop! process-1)
   (p/stop! process-2)
+  (p/stop! process-3)
 
   ;;;; pub/sub tests
   
