@@ -1,5 +1,22 @@
 (ns bazaar.workflow.core
-  (:require [bazaar.processes.core-async :as pca]))
+  (:require [bazaar.processes.core-async :as pca]
+            [clojure.spec.alpha :as s]))
+
+;;;; Specs
+
+(s/def ::process (fn [x]
+                   (and (var? x) (fn? (var-get x)))))
+
+(s/def ::edge (s/coll-of var? :kind vector? :count 2 :distinct true))
+
+(s/def ::workflow (fn [x]
+                    (and (var? x)
+                         (let [value (var-get x)]
+                           (and (vector? value)
+                                (> (count value) 0)
+                                (every? #(or (s/valid? ::process %)
+                                             (s/valid? ::edge %)) 
+                                        value))))))
 
 ;;;; Example data structure for processes
 
@@ -20,15 +37,23 @@
 
 ;;;; Helper functions
 
+(defn get-var-name-as-keyword
+  [v]
+  (-> v meta :name keyword))
+
 (defn get-base-process
   [process-fn]
   (let [metadata (meta process-fn)]
     (pca/->CoreAsync {:name (-> metadata :name keyword)
                       :handler-fn (var-get process-fn)})))
 
+(defn build-processes-map
+  [workflow-var]
+  (let [workflow-name (get-var-name-as-keyword workflow-var)]
+    ))
+
 (defn get-processes
-  [workflow]
-  ())
+  [workflow])
 
 ;;;; Test workflow
 
