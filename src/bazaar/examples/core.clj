@@ -30,9 +30,6 @@
   [[#'w1 #'p4]
    [#'w2 #'p5]])
 
-(def w4
-  [#'p1 #'p2])
-
 (comment
   (require '[bazaar.workflow.core :as w])
   
