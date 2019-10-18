@@ -38,4 +38,4 @@
 (comment
   (require '[bazaar.workflow.core :as w])
   
-  (w/get-processes #'w3))
+  (w/get-processes #'w1))

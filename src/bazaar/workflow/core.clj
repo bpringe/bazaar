@@ -43,21 +43,35 @@
 
 ;;;; Builder functions
 
-(defn get-var-name-as-keyword
+(defn var->keyword
   [v]
   (-> v meta :name keyword))
 
 (defn create-base-process
-  [process-fn]
-  (let [metadata (meta process-fn)]
-    (->CoreAsyncProcess {:name (-> metadata :name keyword)
-                         :handler-fn (var-get process-fn)})))
+  [process]
+  (->CoreAsyncProcess {:name (var->keyword process)
+                       :handler-fn (var-get process)}))
+
+(defn assoc-process!
+  [process workflow-path processes]
+  (let [process-name (var->keyword process)
+        process-path (conj workflow-path process-name)]
+    (swap! processes assoc process-path (create-base-process process))))
 
 (defn create-base-processes!
   [workflow workflow-path processes]
-  (let [workflow-name (get-var-name-as-keyword workflow)
+  (let [workflow-name (var->keyword workflow)
         workflow-path (conj workflow-path workflow-name)]
-    (doseq [])))
+    (doseq [workflow-element (var-get workflow)]
+      (condp s/valid? workflow-element
+        ::process (assoc-process! workflow-element workflow-path processes)
+        ::edge (doseq [edge-element workflow-element]
+                 (condp s/valid? edge-element
+                   ::process (assoc-process! edge-element workflow-path processes)
+                   ::workflow (create-base-processes! edge-element workflow-path processes)
+                   (throw (Exception. (str "Edge element " edge-element " is not a process or workflow. Workflow path: " workflow-path)))))
+        ::workflow (create-base-processes! workflow-element workflow-path processes)
+        (throw (Exception. (str "Workflow element " workflow-element " is not a process, edge, or workflow. Workflow path: " workflow-path)))))))
 
 (defn create-base-processes
   [workflow]
@@ -69,26 +83,3 @@
   [workflow]
   (-> workflow
       create-base-processes))
-
-;;;; Test workflow
-
-(defn p1
-  [data]
-  (assoc data :p1 true))
-
-(defn p2
-  [data]
-  (assoc data :p2 true))
-
-(defn p3
-  [data]
-  (assoc data :p3 true))
-
-(def w1
-  [[#'p1 #'p2]
-   [#'p2 #'p3]
-   [#'p1 #'p3]])
-
-(comment
-  
-  )
