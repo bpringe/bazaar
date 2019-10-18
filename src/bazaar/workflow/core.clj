@@ -1,5 +1,5 @@
 (ns bazaar.workflow.core
-  (:require [bazaar.processes.core-async :as pca]
+  (:require [bazaar.processes.core-async :refer [->CoreAsyncProcess]]
             [clojure.spec.alpha :as s]))
 
 ;;;; Specs
@@ -9,6 +9,7 @@
 
 (s/def ::edge (s/coll-of var? :kind vector? :count 2 :distinct true))
 
+;;;; TODO: Possibly refactor this, but it works ¯\_ (ツ) _/¯
 (s/def ::workflow (fn [x]
                     (and (var? x)
                          (let [value (var-get x)]
@@ -18,6 +19,10 @@
                                              (s/valid? ::edge %)
                                              (s/valid? ::workflow %)) 
                                         value))))))
+
+(s/def ::workflow-element (s/or :workflow ::workflow
+                                :process ::process
+                                :edge ::edge))
 
 ;;;; Example data structure for processes
 
@@ -45,18 +50,25 @@
 (defn create-base-process
   [process-fn]
   (let [metadata (meta process-fn)]
-    (pca/->CoreAsync {:name (-> metadata :name keyword)
-                      :handler-fn (var-get process-fn)})))
+    (->CoreAsyncProcess {:name (-> metadata :name keyword)
+                         :handler-fn (var-get process-fn)})))
+
+(defn create-base-processes!
+  [workflow workflow-path processes]
+  (let [workflow-name (get-var-name-as-keyword workflow)
+        workflow-path (conj workflow-path workflow-name)]
+    (doseq [])))
 
 (defn create-base-processes
-  [workflow-var]
-  (let [workflow-name (get-var-name-as-keyword workflow-var)]
-    ))
+  [workflow]
+  (let [processes (atom {})]
+    (create-base-processes! workflow [] processes)
+    processes))
 
 (defn get-processes
   [workflow]
   (-> workflow
-      get-base-processes))
+      create-base-processes))
 
 ;;;; Test workflow
 
