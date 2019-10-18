@@ -15,7 +15,8 @@
                            (and (vector? value)
                                 (> (count value) 0)
                                 (every? #(or (s/valid? ::process %)
-                                             (s/valid? ::edge %)) 
+                                             (s/valid? ::edge %)
+                                             (s/valid? ::workflow %)) 
                                         value))))))
 
 ;;;; Example data structure for processes

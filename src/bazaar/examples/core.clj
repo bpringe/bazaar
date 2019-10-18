@@ -20,6 +20,10 @@
   [data]
   (assoc data :p5 true))
 
+(defn p6
+  [data]
+  (assoc data :p6 true))
+
 (def w1
   [[#'p1 #'p2]])
 
@@ -28,7 +32,8 @@
 
 (def w3
   [[#'w1 #'p4]
-   [#'w2 #'p5]])
+   [#'w2 #'p5]
+   #'p6])
 
 (comment
   (require '[bazaar.workflow.core :as w])
