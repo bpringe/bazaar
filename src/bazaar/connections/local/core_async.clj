@@ -54,7 +54,7 @@
   (a/close! output-channel)
   state)
 
-(defrecord CoreAsync [config]
+(defrecord CoreAsyncConnection [config]
   Connection
   (get-input-channel [this]
     (get-in this [:state :input-channel]))
@@ -75,17 +75,13 @@
 (comment
   (require '[bazaar.protocols :as p])
   
-  (def conn (p/start! (->CoreAsync {:sub-topics ["out.p1"]})))
+  (def conn (p/start! (->CoreAsyncConnection {:sub-topics ["out.p1"]})))
   
   (def sub-topic-channel (:channel (get @topic-hub "out.p1")))
   
-  (a/>!! sub-topic-channel "hello world 2")
-  
-  (def input-channel (p/get-input-channel conn))
+  (a/>!! sub-topic-channel "hello world")
   
   (def output-channel (p/get-output-channel conn))
-  
-  (a/>!! input-channel "hello")
   
   (a/<!! output-channel)
   

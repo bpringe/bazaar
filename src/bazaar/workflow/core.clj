@@ -36,25 +36,27 @@
                     [:workflow-3 :workflow-2 :p3] {#_p3_map}
                     [:workflow-3 :p4] {#_p4_map}})
 
-;;;; Helper functions
+;;;; Builder functions
 
 (defn get-var-name-as-keyword
   [v]
   (-> v meta :name keyword))
 
-(defn get-base-process
+(defn create-base-process
   [process-fn]
   (let [metadata (meta process-fn)]
     (pca/->CoreAsync {:name (-> metadata :name keyword)
                       :handler-fn (var-get process-fn)})))
 
-(defn build-processes-map
+(defn create-base-processes
   [workflow-var]
   (let [workflow-name (get-var-name-as-keyword workflow-var)]
     ))
 
 (defn get-processes
-  [workflow])
+  [workflow]
+  (-> workflow
+      get-base-processes))
 
 ;;;; Test workflow
 

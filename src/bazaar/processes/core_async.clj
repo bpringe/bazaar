@@ -34,7 +34,7 @@
         (recur))))
   state)
 
-(defrecord CoreAsync [config]
+(defrecord CoreAsyncProcess [config]
   p/Lifecycle
   (start! [this]
           (assoc this :state (->> {}

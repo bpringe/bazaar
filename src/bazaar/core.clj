@@ -1,29 +1,29 @@
 (ns bazaar.core
-  (:require [bazaar.connections.local.core-async :as lc]
-            [bazaar.processes.core-async :as proc]))
+  (:require [bazaar.connections.local.core-async :refer [->CoreAsyncConnection]]
+            [bazaar.processes.core-async :refer [->CoreAsyncProcess]]))
 
-(def p1 (proc/->CoreAsync
+(def p1 (->CoreAsyncProcess
          {:name :p1
           :handler-fn (fn [msg] (assoc msg :p1 true))
-          :in-conn (lc/->CoreAsync
+          :in-conn (->CoreAsyncConnection
                     {:sub-topics ["in.p1"]})
-          :out-conn (lc/->CoreAsync
+          :out-conn (->CoreAsyncConnection
                      {:pub-topic "out.p1"})}))
 
-(def p2 (proc/->CoreAsync
+(def p2 (->CoreAsyncProcess
          {:name :p2
           :handler-fn (fn [msg] (assoc msg :p2 true))
-          :in-conn (lc/->CoreAsync
+          :in-conn (->CoreAsyncConnection
                     {:sub-topics ["out.p1"]})
-          :out-conn (lc/->CoreAsync
+          :out-conn (->CoreAsyncConnection
                      {:pub-topic "out.p2"})}))
 
-(def p3 (proc/->CoreAsync
+(def p3 (->CoreAsyncProcess
          {:name :p3
           :handler-fn (fn [msg] (assoc msg :p3 true))
-          :in-conn (lc/->CoreAsync
+          :in-conn (->CoreAsyncConnection
                     {:sub-topics ["out.p1"]})
-          :out-conn (lc/->CoreAsync
+          :out-conn (->CoreAsyncConnection
                      {:pub-topic "out.p3"})}))
 
 (comment
