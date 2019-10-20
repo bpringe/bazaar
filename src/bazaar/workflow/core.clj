@@ -101,12 +101,17 @@
              {}
              processes))
 
-; (defn create-in-conns
-;   [workflow processes]
-;   (doseq [workflow-element (var-get workflow)
-;           ]
-;     (condp s/valid? workflow-element
-;       ::process )))
+(defn create-in-conns!
+  [workflow workflow-path processes]
+  (let [edges (filter ::edge (var-get workflow))]
+    (doseq [[source-node destination-node] edges]
+      )))
+
+(defn create-in-conns
+  [workflow processes]
+  (let [processes (atom processes)]
+    (create-in-conns! workflow [] processes)
+    @processes))
 
 (defn get-processes
   [workflow]
