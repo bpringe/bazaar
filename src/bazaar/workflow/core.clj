@@ -1,5 +1,6 @@
 (ns bazaar.workflow.core
   (:require [bazaar.processes.core-async :refer [->CoreAsyncProcess]]
+            [bazaar.connections.local.core-async :refer [->CoreAsyncConnection]]
             [clojure.spec.alpha :as s]))
 
 ;;;; Specs
@@ -56,7 +57,8 @@
   [process workflow-path processes]
   (let [process-name (var->keyword process)
         process-path (conj workflow-path process-name)]
-    (swap! processes assoc process-path (create-base-process process))))
+    (swap! processes assoc process-path (-> (create-base-process process)
+                                            (assoc :path process-path)))))
 
 (defn create-base-processes!
   [workflow workflow-path processes]
@@ -77,9 +79,26 @@
   [workflow]
   (let [processes (atom {})]
     (create-base-processes! workflow [] processes)
-    processes))
+    @processes))
+
+(defn create-out-conn
+  [process]
+  (->CoreAsyncConnection {:pub-topic (str "out." (->> (:path process)
+                                                      (map name)
+                                                      (clojure.string/join ".")))}))
+
+(defn create-out-conns
+  [processes]
+  (reduce-kv (fn [processes k process]
+               (->> process
+                    create-out-conn
+                    (assoc process :out-conn)
+                    (assoc processes k)))
+             {}
+             processes))
 
 (defn get-processes
   [workflow]
   (-> workflow
-      create-base-processes))
+      create-base-processes
+      create-out-conns))
