@@ -37,5 +37,6 @@
 
 (comment
   (require '[bazaar.workflow.core :as w])
+  (require '[clojure.spec.alpha :as s])
   
   (w/get-processes #'w1))

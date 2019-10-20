@@ -8,9 +8,13 @@
 (s/def ::process (fn [x]
                    (and (var? x) (fn? (var-get x)))))
 
-(s/def ::edge (s/coll-of var? :kind vector? :count 2 :distinct true))
+(s/def ::edge (s/coll-of (s/or :process ::process
+                               :workflow ::workflow)
+                         :kind vector?
+                         :count 2
+                         :distinct true))
 
-;;;; TODO: Possibly refactor this, but it works ¯\_ (ツ) _/¯
+;;;; TODO: Possibly refactor this, but it works ¯\_(ツ)_/¯
 (s/def ::workflow (fn [x]
                     (and (var? x)
                          (let [value (var-get x)]
@@ -18,7 +22,7 @@
                                 (> (count value) 0)
                                 (every? #(or (s/valid? ::process %)
                                              (s/valid? ::edge %)
-                                             (s/valid? ::workflow %)) 
+                                             (s/valid? ::workflow %))
                                         value))))))
 
 (s/def ::workflow-element (s/or :workflow ::workflow
@@ -97,8 +101,15 @@
              {}
              processes))
 
+; (defn create-in-conns
+;   [workflow processes]
+;   (doseq [workflow-element (var-get workflow)
+;           ]
+;     (condp s/valid? workflow-element
+;       ::process )))
+
 (defn get-processes
   [workflow]
-  (-> workflow
-      create-base-processes
-      create-out-conns))
+  (->> workflow
+       create-base-processes
+       create-out-conns))
