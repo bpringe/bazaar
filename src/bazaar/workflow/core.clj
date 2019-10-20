@@ -101,11 +101,20 @@
              {}
              processes))
 
+(defn get-exit-process
+  [edge-node workflow-path processes]
+  )
+
+(defn get-entry-process
+  [edge-node workflow-path processes])
+
 (defn create-in-conns!
   [workflow workflow-path processes]
-  (let [edges (filter ::edge (var-get workflow))]
+  (let [edges (filter #(s/valid? ::edge %) (var-get workflow))]
     (doseq [[source-node destination-node] edges]
-      )))
+      (let [source-exit-process (get-exit-process source-node workflow-path @processes)
+            destination-entry-process (get-entry-process destination-node workflow-path @processes)]
+        ))))
 
 (defn create-in-conns
   [workflow processes]
