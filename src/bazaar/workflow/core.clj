@@ -91,39 +91,54 @@
                                                       (map name)
                                                       (clojure.string/join ".")))}))
 
-(defn create-out-conns
+(defn create-in-conn
+  [process]
+  (->CoreAsyncConnection {}))
+
+(defn create-connections
   [processes]
   (reduce-kv (fn [processes k process]
-               (->> process
-                    create-out-conn
-                    (assoc process :out-conn)
-                    (assoc processes k)))
+               (assoc processes k (merge process {:in-conn (create-in-conn process)
+                                                  :out-conn (create-out-conn process)})))
              {}
              processes))
 
-(defn get-exit-process
-  [edge-node workflow-path processes]
-  )
+(defn get-exit-process-key
+  [workflow-element workflow-path]
+  (condp s/valid? workflow-element
+    ::process (conj workflow-path (var->keyword workflow-element))
+    ::workflow (let [workflow-path (conj workflow-path (var->keyword workflow-element))
+                     last-element (-> workflow-element var-get flatten last)]
+                 (get-exit-process-key last-element workflow-path))
+    (throw (Exception. (str "Workflow element " workflow-element " is not a process or workflow")))))
 
-(defn get-entry-process
-  [edge-node workflow-path processes])
+(defn get-entry-process-key
+  [workflow-element workflow-path]
+  (condp s/valid? workflow-element
+    ::process (conj workflow-path (var->keyword workflow-element))
+    ::workflow (let [workflow-path (conj workflow-path (var->keyword workflow-element))
+                     first-element (-> workflow-element var-get flatten first)]
+                 (get-entry-process-key first-element workflow-path))
+    (throw (Exception. (str "Workflow element " workflow-element " is not a process or workflow")))))
 
-(defn create-in-conns!
+(defn add-subscriptions!
   [workflow workflow-path processes]
-  (let [edges (filter #(s/valid? ::edge %) (var-get workflow))]
+  (let [edges (filter #(s/valid? ::edge %) (var-get workflow))
+        workflow-path (conj workflow-path (var->keyword workflow))]
     (doseq [[source-node destination-node] edges]
-      (let [source-exit-process (get-exit-process source-node workflow-path @processes)
-            destination-entry-process (get-entry-process destination-node workflow-path @processes)]
-        ))))
+      (let [source-exit-process (get @processes (get-exit-process-key source-node workflow-path))
+            destination-entry-process (get @processes (get-entry-process-key destination-node workflow-path))]
+        ;; TODO: Finish this
+        ()))))
 
-(defn create-in-conns
+(defn add-subscriptions
   [workflow processes]
   (let [processes (atom processes)]
-    (create-in-conns! workflow [] processes)
+    (add-subscriptions! workflow [] processes)
     @processes))
 
 (defn get-processes
   [workflow]
   (->> workflow
        create-base-processes
-       create-out-conns))
+       create-connections))
