@@ -98,8 +98,11 @@
 (defn create-connections
   [processes]
   (reduce-kv (fn [processes k process]
-               (assoc processes k (merge process {:in-conn (create-in-conn process)
-                                                  :out-conn (create-out-conn process)})))
+               (assoc processes k (update process 
+                                          :config 
+                                          merge 
+                                          {:in-conn (create-in-conn process)
+                                           :out-conn (create-out-conn process)})))
              {}
              processes))
 

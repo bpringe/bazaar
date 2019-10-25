@@ -37,8 +37,8 @@
 
 (comment
   (require '[bazaar.workflow.core :as w])
-  (require '[clojure.spec.alpha :as s])
+  (require '[bazaar.runtime.core :as r])
   
   (w/get-processes #'w1)
   
-  (w/get-exit-process-key #'w1 []))
+  (r/up! {:workflow #'w1}))
