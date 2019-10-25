@@ -121,24 +121,42 @@
                  (get-entry-process-key first-element workflow-path))
     (throw (Exception. (str "Workflow element " workflow-element " is not a process or workflow")))))
 
+;; TODO: This may be able to be abstracted better. It's just that the way
+;;       subscriptions work for each type of connection may be different, but the
+;;       commonalities are: get in-conn config, if subs exist, conj, else create new sub collection.
+(defn add-subscription
+  [process topic]
+  (update-in process [:in-conn :config :sub-topics] 
+             (fn [sub-topics]
+               (if sub-topics
+                 (conj sub-topics topic)
+                 [topic]))))
+
 (defn add-subscriptions!
-  [workflow workflow-path processes]
-  (let [edges (filter #(s/valid? ::edge %) (var-get workflow))
-        workflow-path (conj workflow-path (var->keyword workflow))]
+  [workflow workflow-path processes workflows-visited]
+  (swap! workflows-visited conj workflow)
+  (let [edges (filter #(s/valid? ::edge %) (var-get workflow))]
     (doseq [[source-node destination-node] edges]
-      (let [source-exit-process (get @processes (get-exit-process-key source-node workflow-path))
-            destination-entry-process (get @processes (get-entry-process-key destination-node workflow-path))]
-        ;; TODO: Finish this
-        ()))))
+      (let [source-exit-process-key (get-exit-process-key source-node workflow-path)
+            destination-entry-process-key (get-entry-process-key destination-node workflow-path)
+            pub-topic (-> (get @processes source-exit-process-key) :out-conn :config :pub-topic)]
+        (swap! processes update destination-entry-process-key add-subscription pub-topic)
+        (doseq [workflow (filter #(s/valid? ::workflow %) [source-node destination-node])]
+          (when-not (contains? @workflows-visited workflow)
+            (add-subscriptions! workflow
+                                (conj workflow-path (var->keyword workflow))
+                                processes
+                                workflows-visited)))))))
 
 (defn add-subscriptions
   [workflow processes]
   (let [processes (atom processes)]
-    (add-subscriptions! workflow [] processes)
+    (add-subscriptions! workflow [(var->keyword workflow)] processes (atom #{}))
     @processes))
 
 (defn get-processes
   [workflow]
   (->> workflow
        create-base-processes
-       create-connections))
+       create-connections
+       (add-subscriptions workflow)))
