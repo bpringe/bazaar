@@ -36,13 +36,15 @@
    #'p6])
 
 (comment
-  (require '[bazaar.workflow.core :as w])
-  (require '[bazaar.runtime.core :as r])
-  (require '[bazaar.connections.local.core-async :as ca])
+  (require '[bazaar.workflow.core :as w]
+           '[bazaar.runtime.core :as r]
+           '[bazaar.connections.local.core-async :as ca])
   
   (w/get-processes #'w1)
   
   (r/up! {:workflow #'w1})
+  
+  (r/restart! {:workflow #'w1})
   
   (r/down!)
   
