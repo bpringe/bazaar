@@ -9,7 +9,7 @@
   (assoc state :input-channel (a/chan)))
 
 (defn create-publication!
-  "If topic exists in pub-hub, returns topic data, else it creates the topic data, adds it to the topic-hub, and returns it."
+  "If topic exists in topic-hub, returns topic data, else it creates the topic data, adds it to the topic-hub, and returns it."
   [topic]
   (if-let [topic-data (get @topic-hub topic)]
     topic-data

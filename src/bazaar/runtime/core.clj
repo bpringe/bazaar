@@ -1,7 +1,8 @@
 (ns bazaar.runtime.core
   (:require [bazaar.workflow.core :as w]
             [bazaar.protocols :as p]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.core.async :as a]))
 
 (defonce state (atom {}))
 
@@ -20,4 +21,9 @@
     (p/stop! process)
     (swap! state update :processes dissoc process-key)))
 
-
+(defn send!
+  [process-key data]
+  (if-let [process (-> @state :processes (get process-key))]
+    (let [input-channel (-> process :state :in-conn p/get-input-channel)]
+      (a/>!! input-channel data))
+    (println "Process" process-key "does not exist in the runtime")))

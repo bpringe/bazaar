@@ -38,7 +38,14 @@
 (comment
   (require '[bazaar.workflow.core :as w])
   (require '[bazaar.runtime.core :as r])
+  (require '[bazaar.connections.local.core-async :as ca])
   
   (w/get-processes #'w1)
   
-  (r/up! {:workflow #'w1}))
+  (r/up! {:workflow #'w1})
+  
+  (r/down!)
+  
+  (r/send! [:w1 :p1] {:hello "world"})
+  
+  )
