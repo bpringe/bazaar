@@ -46,6 +46,4 @@
   
   (r/down!)
   
-  (r/send! [:w1 :p1] {:hello "world"})
-  
-  )
+  (r/send! [:w1 :p1] {:hello "world"}))

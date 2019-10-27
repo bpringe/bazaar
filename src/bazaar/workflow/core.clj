@@ -129,7 +129,7 @@
 ;;       commonalities are: get in-conn config, if subs exist, conj, else create new sub collection.
 (defn add-subscription
   [process topic]
-  (update-in process [:in-conn :config :sub-topics] 
+  (update-in process [:config :in-conn :config :sub-topics] 
              (fn [sub-topics]
                (if sub-topics
                  (conj sub-topics topic)
@@ -142,7 +142,7 @@
     (doseq [[source-node destination-node] edges]
       (let [source-exit-process-key (get-exit-process-key source-node workflow-path)
             destination-entry-process-key (get-entry-process-key destination-node workflow-path)
-            pub-topic (-> (get @processes source-exit-process-key) :out-conn :config :pub-topic)]
+            pub-topic (-> (get @processes source-exit-process-key) :config :out-conn :config :pub-topic)]
         (swap! processes update destination-entry-process-key add-subscription pub-topic)
         (doseq [workflow (filter #(s/valid? ::workflow %) [source-node destination-node])]
           (when-not (contains? @workflows-visited workflow)

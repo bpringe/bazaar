@@ -48,8 +48,10 @@
   state)
 
 (defn close-output-channel!
-  [{:keys [output-channel] :as state}]
+  [{:keys [pub-topic]} {:keys [output-channel] :as state}]
   (a/close! output-channel)
+  (when pub-topic
+    (swap! topic-hub dissoc pub-topic))
   state)
 
 (defrecord CoreAsyncConnection [config]
@@ -66,9 +68,9 @@
                             (create-output-channel! config)
                             start-process-loop!)))
   (stop! [this]
-    (-> (:state this)
-        close-input-channel!
-        close-output-channel!)))
+    (->> (:state this)
+         close-input-channel!
+         (close-output-channel! config))))
 
 (comment
   (require '[bazaar.protocols :as p])
