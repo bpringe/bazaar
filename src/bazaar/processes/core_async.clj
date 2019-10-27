@@ -4,7 +4,6 @@
 
 (defn start-connections!
   [config state]
-  (println "Starting connections for process" (:name config))
   (reduce-kv (fn [state k v]
                (if (satisfies? p/Connection v)
                  (assoc state k (p/start! v))
@@ -24,8 +23,6 @@
 
 (defn start-process-loop!
   [{:keys [name handler-fn]} {:keys [in-conn out-conn] :as state}]
-  (println "Starting process loop for process" name)
-  (println "Process state:" state)
   (let [input-chan (if in-conn 
                      (p/get-output-channel in-conn)
                      (throw (Exception. (str "No in-conn exists on process " name))))

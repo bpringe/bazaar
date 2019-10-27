@@ -5,7 +5,7 @@
 (defonce topic-hub (atom {}))
 
 (defn create-input-channel!
-  [config state]
+  [state]
   (assoc state :input-channel (a/chan)))
 
 (defn create-publication!
@@ -44,13 +44,11 @@
 
 (defn close-input-channel!
   [{:keys [input-channel] :as state}]
-  (println "Closing input-channel")
   (a/close! input-channel)
   state)
 
 (defn close-output-channel!
   [{:keys [output-channel] :as state}]
-  (println "Closing output-channel")
   (a/close! output-channel)
   state)
 
@@ -63,7 +61,7 @@
   Lifecycle
   (start! [this]
     (assoc this :state (->> {}
-                            (create-input-channel! config)
+                            create-input-channel!
                             (subscribe-to-topics! config)
                             (create-output-channel! config)
                             start-process-loop!)))
