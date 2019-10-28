@@ -31,21 +31,18 @@
   [[#'w1 #'p3]])
 
 (def w3
-  [[#'w1 #'p4]
-   [#'w2 #'p5]
-   #'p6])
+  [[#'w2 #'p4]
+   [#'p4 #'p5]])
 
 (comment
   (require '[bazaar.workflow.core :as w]
            '[bazaar.runtime.core :as r]
            '[bazaar.connections.local.core-async :as ca])
-  
-  (w/get-processes #'w1)
-  
-  (r/up! {:workflow #'w1})
-  
-  (r/restart! {:workflow #'w1})
-  
-  (r/down!)
-  
-  (r/send! [:w1 :p1] {:hello "world"}))
+
+  (r/up! {:workflow #'w3})
+
+  (r/restart! {:workflow #'w3})
+
+  (r/send! [:w3 :w2 :w1 :p1] {:hello "world"})
+
+  (r/down!))
