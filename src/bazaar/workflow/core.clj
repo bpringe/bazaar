@@ -55,7 +55,7 @@
 (defn create-base-process
   [process]
   (->CoreAsyncProcess {:name (var->keyword process)
-                       :handler-fn (var-get process)}))
+                       :handler-fn process}))
 
 (defn assoc-process!
   [process workflow-path processes]
