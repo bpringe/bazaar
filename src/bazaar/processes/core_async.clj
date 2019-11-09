@@ -1,6 +1,7 @@
 (ns bazaar.processes.core-async
   (:require [bazaar.protocols :as p]
-            [clojure.core.async :as a]))
+            [clojure.core.async :as a]
+            [taoensso.timbre :as timbre]))
 
 (defn start-connections!
   [config state]
@@ -36,7 +37,7 @@
             (when (and output-chan handler-result)
               (a/>! output-chan handler-result)))
           (catch Exception e
-            (println "Error:" e)))
+            (timbre/error e)))
         (recur))))
   state)
 
