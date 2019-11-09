@@ -23,17 +23,20 @@
 
 (defn start-process-loop!
   [{:keys [name handler-fn]} {:keys [in-conn out-conn] :as state}]
-  (let [input-chan (if in-conn 
+  (let [input-chan (if in-conn
                      (p/get-output-channel in-conn)
                      (throw (Exception. (str "No in-conn exists on process " name))))
         output-chan (when out-conn (p/get-input-channel out-conn))]
     (a/go-loop []
       (when-let [msg (a/<! input-chan)]
-        (println (format "[%s] - Message received: %s" name msg))
-        (let [handler-result (handler-fn msg)]
-          (println (format "[%s] - Handler result: %s" name handler-result))
-          (when output-chan
-            (a/>! output-chan handler-result)))
+        (try
+          (println (format "[%s] - Message received: %s" name msg))
+          (let [handler-result (handler-fn msg)]
+            (println (format "[%s] - Handler result: %s" name handler-result))
+            (when (and output-chan handler-result)
+              (a/>! output-chan handler-result)))
+          (catch Exception e
+            (println "Error:" e)))
         (recur))))
   state)
 
