@@ -1,4 +1,4 @@
-(ns bazaar.examples.core)
+(ns bazaar.examples.basic)
 
 (defn p1
   [data]
