@@ -2,27 +2,27 @@
 
 (defn p1
   [data]
-  (assoc data :p1 true))
+  data)
 
 (defn p2
   [data]
-  (assoc data :p2 true))
+  data)
 
 (defn p3
   [data]
-  (assoc data :p3 true))
+  data)
 
 (defn p4
   [data]
-  (assoc data :p4 true))
+  data)
 
 (defn p5
   [data]
-  (assoc data :p5 true))
+  data)
 
 (defn p6
   [data]
-  (assoc data :p6 true))
+  data)
 
 (def w1
   [[#'p1 #'p2]])
@@ -32,12 +32,11 @@
 
 (def w3
   [[#'w2 #'p4]
-   [#'p4 #'p5]])
+   [#'p4 #'p5]
+   [#'p4 #'p6]])
 
 (comment
-  (require '[bazaar.workflow.core :as w]
-           '[bazaar.runtime.core :as r]
-           '[bazaar.connections.local.core-async :as ca])
+  (require '[bazaar.runtime.core :as r])
 
   (r/up! {:workflow #'w3})
 
